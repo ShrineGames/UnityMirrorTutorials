@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class Player : NetworkBehaviour
 {
+    [SyncVar(hook = nameof(OnHolaCountChanged))]
+    int holaCount = 0;
+
     void HandleMovement()
     {
         if (isLocalPlayer)
@@ -19,5 +22,41 @@ public class Player : NetworkBehaviour
     void Update()
     {
         HandleMovement();
+
+        if (isLocalPlayer && Input.GetKeyDown(KeyCode.X))
+        {
+            Debug.Log("Sending Hola to Server!");
+            Hola();
+        }
+    }
+
+    public override void OnStartServer()
+    {
+        Debug.Log("Player has been spawned on the server!");
+    }
+
+    [Command]
+    void Hola()
+    {
+        Debug.Log("Received Hola from Client!");
+        holaCount += 1;
+        ReplyHola();
+    }
+
+    [TargetRpc]
+    void ReplyHola()
+    {
+        Debug.Log("Received Hola from Server!");
+    }
+
+    [ClientRpc]
+    void TooHigh()
+    {
+        Debug.Log("Too high!");
+    }
+
+    void OnHolaCountChanged(int oldCount, int newCount)
+    {
+        Debug.Log($"We had {oldCount} holas, but now we have {newCount} holas!");
     }
 }
